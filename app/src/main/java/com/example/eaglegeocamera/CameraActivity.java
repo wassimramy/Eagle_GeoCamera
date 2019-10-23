@@ -2,6 +2,7 @@ package com.example.eaglegeocamera;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
@@ -46,7 +47,7 @@ import java.util.UUID;
 public class CameraActivity extends AppCompatActivity {
 
 
-    private Button btnCapture;
+    private Button captureButton, backButton;
     private TextureView textureView;
 
     //Check state orientation of output image
@@ -101,13 +102,26 @@ public class CameraActivity extends AppCompatActivity {
         //From Java 1.4 , you can use keyword 'assert' to check expression true or false
         assert textureView != null;
         textureView.setSurfaceTextureListener(textureListener);
-        btnCapture = (Button)findViewById(R.id.btnCapture);
-        btnCapture.setOnClickListener(new View.OnClickListener() {
+        captureButton = (Button)findViewById(R.id.captureButton);
+        backButton = (Button)findViewById(R.id.backButton);
+        captureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 takePicture();
             }
         });
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                takeBackToMainActivity();
+            }
+        });
+    }
+
+    private void takeBackToMainActivity() {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+        this.finish();
     }
 
     private void takePicture() {
