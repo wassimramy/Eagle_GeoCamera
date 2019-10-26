@@ -14,8 +14,8 @@ public interface ItemDAO {
     List<Item> getAll();
 
     //Called to return the item using the id to fetch all the item details.
-    @Query("SELECT * FROM item WHERE iid == :id")
-    Item findByID(long id);
+    @Query("SELECT * FROM item WHERE item_latitude == :latitude AND item_longitude == :longitude")
+    List<Item> findByLongitudeLatitude(double longitude, double latitude);
 
 /*
     //Called to update a specific item attributes with new values using the ID (primary key)

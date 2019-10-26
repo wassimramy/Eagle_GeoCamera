@@ -173,7 +173,7 @@ public class CameraActivity extends AppCompatActivity  implements LocationListen
             captureBuilder.set(CaptureRequest.JPEG_ORIENTATION,ORIENTATIONS.get(rotation));
 
             final String randomUUID = UUID.randomUUID().toString();
-            file = new File(Environment.getExternalStorageDirectory()+"/"+randomUUID+".jpg");
+            file = new File(Environment.getExternalStorageDirectory()+"/Pictures/"+randomUUID+".jpg");
             ImageReader.OnImageAvailableListener readerListener = new ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader imageReader) {

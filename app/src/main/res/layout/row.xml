@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:descendantFocusability="blocksDescendants">
+
+    <LinearLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="4"
+        android:orientation="horizontal"
+        android:padding="5dp">
+
+
+
+        <!--  ListRow Left side Thumbnail image -->
+        <LinearLayout android:id="@+id/thumbnail"
+            android:visibility="visible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="5dp">
+
+
+            <ImageView
+                android:id="@+id/itemImage"
+                android:layout_width="100dp"
+                android:layout_height="100dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/centerContent"
+            android:visibility="visible"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:paddingLeft="10pt"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/itemTitleTextView"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:textColor="#000000"
+                android:textSize="12pt"
+                android:fontFamily="serif"
+                android:paddingTop="0pt"
+                android:text="Sample Row" />
+
+            <TextView
+                android:id="@+id/itemTimeAndDateTextView"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:textColor="#000000"
+                android:textSize="8pt"
+                android:fontFamily="serif"
+                android:paddingBottom="5pt"
+                android:text="Sample Row" />
+        </LinearLayout>
+
+
+
+    </LinearLayout>
+</LinearLayout>

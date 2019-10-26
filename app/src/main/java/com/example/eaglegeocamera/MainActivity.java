@@ -10,6 +10,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -17,16 +18,18 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap mMap;
     public LocationManager locationManager;
     public Location location;
     public ItemDAO dao;
+    public Marker marker;
     public List<Item> list = null;
 
     @Override
@@ -44,9 +47,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (list != null){
             for (int i = 0 ; i < list.size() ; i++){
                 LatLng currentLocation = new LatLng(list.get(i).itemLatitude, list.get(i).itemLongitude);
-                mMap.addMarker(new MarkerOptions().position(currentLocation).title("Hey"));
+                marker = mMap.addMarker(new MarkerOptions().position(currentLocation).title("Hey"));
             }
         }
+
     }
 
     public void setupMapFragment (){
@@ -87,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setOnMarkerClickListener(this);
         onLocationChanged(location);
         populateMarkers();
     }
@@ -116,4 +121,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onProviderDisabled(String provider) {
 
     }
+
+
+    @Override
+    public boolean onMarkerClick(final Marker marker) {
+
+        Log.d("Main Activity", "Click Detected");
+            Intent intent = new Intent(this, ShowPicturesActivity.class);
+            intent.putExtra("Latitude", marker.getPosition().latitude);
+            intent.putExtra("Longitude", marker.getPosition().longitude);
+            startActivity(intent);
+
+        return false;
+    }
+
 }

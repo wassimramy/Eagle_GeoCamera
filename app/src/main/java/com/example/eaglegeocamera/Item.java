@@ -1,18 +1,8 @@
 package com.example.eaglegeocamera;
 
-import android.Manifest;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.location.LocationListener;
-import android.location.LocationManager;
-
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.room.*;
 
-import com.google.android.gms.maps.OnMapReadyCallback;
-
-import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Entity
@@ -29,18 +19,6 @@ public class Item  {
         this.itemLatitude = itemLatitude;
 
     }
-
-
-
-    /*
-        //Item constructor
-    public Item(String iid, String itemPath){
-        this.iid = iid;
-        this.itemPath = itemPath;
-        itemDateAndTime = createUniqueTimeStamp();
-    }
-     */
-
 
     private long createUniqueTimeStamp() {
         long now = System.currentTimeMillis();
