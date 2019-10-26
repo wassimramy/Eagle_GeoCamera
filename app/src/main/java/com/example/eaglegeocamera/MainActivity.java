@@ -19,11 +19,15 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
 
     private GoogleMap mMap;
-    private LocationManager locationManager;
-    private  Location location;
+    public LocationManager locationManager;
+    public Location location;
+    public ItemDAO dao;
+    public List<Item> list = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +35,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         setupLocation();
         setupMapFragment();
+
+        dao = ((BaseApplication) getApplication()).getDatabase().itemDAO(); //retrieve the database information from the BaseApplication class to use the Data Access Object variable DAO
+        list =  dao.getAll();
+    }
+
+    public void populateMarkers (){
+        if (list != null){
+            for (int i = 0 ; i < list.size() ; i++){
+                LatLng currentLocation = new LatLng(list.get(i).itemLatitude, list.get(i).itemLongitude);
+                mMap.addMarker(new MarkerOptions().position(currentLocation).title("Hey"));
+            }
+        }
     }
 
     public void setupMapFragment (){
@@ -39,6 +55,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
+
 
     public void setupLocation (){
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -70,12 +87,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         onLocationChanged(location);
+        populateMarkers();
     }
 
     @Override
@@ -85,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Add a marker in current location and move the camera
         LatLng currentLocation = new LatLng(lat, lng);
-        mMap.addMarker(new MarkerOptions().position(currentLocation).title("Marker in Current Location"));
+        //mMap.addMarker(new MarkerOptions().position(currentLocation).title("Marker in Current Location"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
     }
 
