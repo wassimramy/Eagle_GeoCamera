@@ -1,10 +1,5 @@
 package com.example.eaglegeocamera;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.FileProvider;
-
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -15,6 +10,11 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.FileProvider;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public Location location;
     public ItemDAO dao;
     public Marker marker;
+    public Item newItem;
+    public File photoFile;
     public List<Item> list = null;
     static final int REQUEST_TAKE_PHOTO = 1;
     String currentPhotoPath;
@@ -63,7 +65,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void populateMarkers (){
         if (list != null){
             for (int i = 0 ; i < list.size() ; i++){
-                LatLng currentLocation = new LatLng(list.get(i).itemLatitude, list.get(i).itemLongitude);
+                LatLng currentLocation = new LatLng(list.get(i).itemLatitude
+                        , list.get(i).itemLongitude);
                 marker = mMap.addMarker(new MarkerOptions().position(currentLocation).title("Hey"));
             }
         }
@@ -76,23 +79,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment.getMapAsync(this);
     }
 
-    public void showMaps(View view) {
-        Intent intent = new Intent(this, CameraActivity.class);
-        startActivity(intent);
-        this.finish();
-    }
-
     public void showCamera(View view) {
         dispatchTakePictureIntent();
     }
 
     private void dispatchTakePictureIntent() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        startActivityForResult(takePictureIntent, 1);
         // Ensure that there's a camera activity to handle the intent
         if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
             // Create the File where the photo should go
-            File photoFile = null;
+            photoFile = null;
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
@@ -105,10 +101,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-                //onLocationChanged(location);
-                Log.d("Activity Main", "Adding entry to DB");
-                Item newItem = new Item (photoFile.getName(), photoURI.toString(), longitude, latitude);
-                dao.insertAll(newItem);
+
+                getLastLocation();
+                newItem = new Item(photoFile.getName(), photoURI.toString(),
+                        Math.round(longitude * 10000.0) / 10000.0,
+                        Math.round(latitude * 10000.0) / 10000.0);
             }
         }
     }
@@ -132,9 +129,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode==RESULT_OK){
+            LatLng currentLocation = new LatLng(latitude, longitude);
+            mMap.addMarker(new MarkerOptions().position(currentLocation).title("Marker in Current Location"));
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
+            dao.insertAll(newItem);
             setupMapFragment ();
             list = null;
             list =  dao.getAll();
+        }
+
+        if (resultCode == RESULT_CANCELED) {
+            photoFile.delete();
+            Log.d("Camera Status", "No picture was taken");
         }
     }
 
@@ -166,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             longitude = location.getLongitude();
                             latitude = location.getLatitude();
                             LatLng currentLocation = new LatLng(latitude, longitude);
-                            mMap.addMarker(new MarkerOptions().position(currentLocation).title("Marker in Current Location"));
+                            //mMap.addMarker(new MarkerOptions().position(currentLocation).title("Marker in Current Location"));
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation,13));
                             //mMap.getMaxZoomLevel();
                         } else {

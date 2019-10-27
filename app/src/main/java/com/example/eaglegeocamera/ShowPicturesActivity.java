@@ -39,11 +39,13 @@ public class ShowPicturesActivity extends AppCompatActivity {
         list =  dao.findByLongitudeLatitude(longitude, latitude);
 
         //Retrieve the position of the item clicked in the recycleView and send it to startItemEditActivity to show the respective item information
-        ItemAdapter itemAdapter = new ItemAdapter(this, list, position -> startItemEditActivity(position));
+        ItemAdapter itemAdapter = new ItemAdapter(this, list, position -> startShowPictureActivity(position));
         recyclerView.setAdapter(itemAdapter); //Update the recyclerView
     }
 
-    private void startItemEditActivity(int position) {
-
+    private void startShowPictureActivity(int position) {
+        Intent intent = new Intent(this, ShowPictureActivity.class);
+        intent.putExtra("URI Value", list.get(position).itemPath);
+        startActivity(intent);
     }
 }
