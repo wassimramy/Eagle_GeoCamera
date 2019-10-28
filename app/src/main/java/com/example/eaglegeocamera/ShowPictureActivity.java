@@ -30,8 +30,8 @@ public class ShowPictureActivity extends AppCompatActivity {
         RequestOptions requestOptions = new RequestOptions();
         requestOptions.placeholder(R.drawable.ic_launcher_background);
         requestOptions.error(R.drawable.ic_launcher_background);
+        requestOptions.fitCenter();
         requestOptions.centerCrop();
-        //requestOptions.override(600, 600);
 
         Glide.with(this)
                 .load(Uri.parse(URI)) // Uri of the picture

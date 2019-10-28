@@ -22,6 +22,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -41,9 +42,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public FusedLocationProviderClient mFusedLocationClient;
     public Location location;
     public ItemDAO dao;
+    public Marker currentLocationMarker;
     public Marker marker;
     public Item newItem;
     public File photoFile;
+    public Uri photoURI;
+    public int resultCamera;
     public List<Item> list = null;
     static final int REQUEST_TAKE_PHOTO = 1;
     String currentPhotoPath;
@@ -67,8 +71,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             for (int i = 0 ; i < list.size() ; i++){
                 LatLng currentLocation = new LatLng(list.get(i).itemLatitude
                         , list.get(i).itemLongitude);
-                marker = mMap.addMarker(new MarkerOptions().position(currentLocation).title("Hey"));
+                marker = mMap.addMarker(new MarkerOptions().position(currentLocation));
+                marker.setTitle("Location");
             }
+        }
+    }
+
+    public String getPicturesCount(double itemLatitude, double itemLongitude) {
+        int count = 0;
+        if (list != null) {
+            for (int i = 0; i < list.size(); i++) {
+                if (list.get(i).itemLatitude == itemLatitude && list.get(i).itemLongitude == itemLongitude) {
+                    count++;
+                }
+            }
+        }
+        if (count == 1) {
+            return "A picture was taken here";
+        } else if (count == 0) {
+            return "No pictures were taken here";
+        } else {
+            return (count) + " pictures were taken here";
         }
     }
 
@@ -80,7 +103,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     public void showCamera(View view) {
+        if (marker != null) {
+            marker.hideInfoWindow();
+        }
         dispatchTakePictureIntent();
+        getLastLocation();
     }
 
     private void dispatchTakePictureIntent() {
@@ -96,16 +123,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
+                photoURI = FileProvider.getUriForFile(this,
                         "com.example.eaglegeocamera",
                         photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-
-                getLastLocation();
-                newItem = new Item(photoFile.getName(), photoURI.toString(),
-                        Math.round(longitude * 10000.0) / 10000.0,
-                        Math.round(latitude * 10000.0) / 10000.0);
             }
         }
     }
@@ -128,19 +150,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode==RESULT_OK){
-            LatLng currentLocation = new LatLng(latitude, longitude);
-            mMap.addMarker(new MarkerOptions().position(currentLocation).title("Marker in Current Location"));
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 15));
-            dao.insertAll(newItem);
-            setupMapFragment ();
-            list = null;
-            list =  dao.getAll();
-        }
-
+        resultCamera = resultCode;
         if (resultCode == RESULT_CANCELED) {
             photoFile.delete();
-            Log.d("Camera Status", "No picture was taken");
+            Log.d("Camera Status", "File will be deleted since no picture was taken");
         }
     }
 
@@ -171,10 +184,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             location = task.getResult();
                             longitude = location.getLongitude();
                             latitude = location.getLatitude();
-                            LatLng currentLocation = new LatLng(latitude, longitude);
-                            //mMap.addMarker(new MarkerOptions().position(currentLocation).title("Marker in Current Location"));
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation,13));
-                            //mMap.getMaxZoomLevel();
+                            LatLng currentLocation = new LatLng(Math.round(latitude * 10000.0) / 10000.0,
+                                    Math.round(longitude * 10000.0) / 10000.0);
+
+                            if (currentLocationMarker != null) {
+                                currentLocationMarker.remove();
+                            }
+                            MarkerOptions currentLocationMarkerOptions = new MarkerOptions().position(currentLocation);
+                            currentLocationMarker = mMap.addMarker(currentLocationMarkerOptions);
+                            currentLocationMarker.setPosition(currentLocation);
+                            currentLocationMarker.setTitle("Current Location");
+                            currentLocationMarker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                            if (resultCamera == RESULT_OK) {
+                                newItem = new Item(photoFile.getName(), photoURI.toString(),
+                                        currentLocationMarker.getPosition().longitude
+                                        , currentLocationMarker.getPosition().latitude);
+
+                                dao.insertAll(newItem);
+                                setupMapFragment();
+                                list = null;
+                                list = dao.getAll();
+                                resultCamera = RESULT_CANCELED;
+                            }
+
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLocation, 17));
                         } else {
                             Log.w("Location Services", "getLastLocation:exception", task.getException());
                         }
@@ -243,12 +276,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public boolean onMarkerClick(final Marker marker) {
 
-        Log.d("Main Activity", "Click Detected");
+        if (!marker.getTitle().equals("Current Location")) {
+            marker.setTitle(getPicturesCount(marker.getPosition().latitude
+                    , marker.getPosition().longitude));
+            Log.d("Main Activity", "Click Detected");
             Intent intent = new Intent(this, ShowPicturesActivity.class);
             intent.putExtra("Latitude", marker.getPosition().latitude);
             intent.putExtra("Longitude", marker.getPosition().longitude);
             startActivity(intent);
-
+        }
         return false;
     }
 
